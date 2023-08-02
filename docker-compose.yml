@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: singleservice-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: irk
+      MYSQL_USER: root
+      MYSQL_PASSWORD: bewe
+      MYSQL_ROOT_PASSWORD: bewe
+    ports:
+      - "3306:3306"
+    networks:
+      - fullstack
+
+  app:
+    build: .
+    container_name: singleservice-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_USERNAME: root
+      DB_PASSWORD: bewe
+      DB_HOST: bewe
+      DB_TABLE: irk
+      DB_PORT: 3306
+
+    depends_on:
+      - db
+    networks:
+      - fullstack
+
+volumes:
+  database_postgres:
+
+networks:
+  fullstack:
+    driver: bridge
