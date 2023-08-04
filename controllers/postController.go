@@ -12,9 +12,9 @@ func AddMatkul (c *gin.Context) {
 	fmt.Println("AddMatkul")
 	var requestBody struct {
 		NamaMK string `json:"nama_mk"`
-		SKS    uint    `json:"sks"`
+		SKS    int    `json:"sks"`
 		JurusanMK string `json:"jurusan_mk"`
-		SemesterMinimal uint `json:"semester_minimal"`
+		SemesterMinimal int `json:"semester_minimal"`
 		Prediksi string `json:"prediksi"`
 	}
 
