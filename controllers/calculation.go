@@ -48,83 +48,66 @@ func ScheduleCourses(c *gin.Context) {
 }
 
 func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, maxSKS int) []model.Matakuliah {
-    n := len(courses)
+  // Helper function to find all possible course combinations that meet the SKS constraints
+  var findCourseCombinations func(int, float64, float64, []model.Matakuliah, []model.Matakuliah)
 
-    // Create a 2D slice to store the DP table
-    // dp[i][j] represents the maximum score achievable with j SKS in the first i courses
-    dp := make([][]int, n+1)
-    for i := range dp {
-        dp[i] = make([]int, maxSKS+1)
-    }
+  selectedCourses := make([]model.Matakuliah, 0)
+  currentCourses := make([]model.Matakuliah, 0)
 
-    // Fill the DP table using bottom-up dynamic programming
-    for i := 1; i <= n; i++ {
-        for j := minSKS; j <= maxSKS; j++ {
-            // Convert SKS to int before performing operations
-            sks := int(courses[i-1].SKS)
+  findCourseCombinations = func(index int, currentSKS, currentScore float64, coursesList, currentList []model.Matakuliah) {
+      if currentSKS >= float64(minSKS) && currentSKS <= float64(maxSKS) {
+          if currentScore > totalScore(selectedCourses) {
+              selectedCourses = append([]model.Matakuliah{}, currentList...)
+          }
+      }
 
-            if sks > j {
-              dp[i][j] = dp[i-1][j]
-            } else {
-                // Convert Prediksi to int score using the mapping function
-                prediksiScore := mapPrediksiToScore(courses[i-1].Prediksi)
-                dp[i][j] = max(dp[i-1][j], dp[i-1][j-sks]+prediksiScore)
-            }
-        }
-    }
+      if index >= len(courses) {
+          return
+      }
 
-    // Backtrack to find the selected courses based on the DP table
-    selectedCourses := make([]model.Matakuliah, 0)
-    i, j := n, maxSKS
-    for i > 0 && j >= minSKS {
-        // Convert SKS to int before performing operations
-        sks := int(courses[i-1].SKS)
+      findCourseCombinations(index+1, currentSKS, currentScore, coursesList, currentList)
 
-        // If the score at dp[i][j] is different from dp[i-1][j], it means the course is selected
-        if dp[i][j] != dp[i-1][j] {
-            selectedCourses = append(selectedCourses, courses[i-1])
-            j -= sks
-        }
-        i--
-    }
+      course := courses[index]
+      sks := float64(course.SKS)
+      prediksiScore := mapPrediksiToScore(course.Prediksi)
 
-    // Reverse the selectedCourses since we added them in reverse order during backtracking
-    reverse(selectedCourses)
+      currentSKS += sks
+      currentScore += prediksiScore
+      currentList = append(currentList, course)
 
-    return selectedCourses
+      findCourseCombinations(index+1, currentSKS, currentScore, coursesList, currentList)
+  }
+
+  findCourseCombinations(0, 0, 0, courses, currentCourses)
+  return selectedCourses
 }
 
-func mapPrediksiToScore(prediksi string) int {
+
+// Helper function to calculate the total score of a list of courses
+func totalScore(courses []model.Matakuliah) float64 {
+  total := 0.0
+  for _, course := range courses {
+      prediksiScore := mapPrediksiToScore(course.Prediksi)
+      total += prediksiScore
+  }
+  return total
+}
+
+func mapPrediksiToScore(prediksi string) float64 {
   switch prediksi {
   case "A":
-      return 4
+      return 4.0
   case "AB":
-      return 3
+      return 3.5
   case "B":
-      return 3
+      return 3.0
   case "BC":
-      return 2
+      return 2.5
   case "C":
-      return 2
+      return 2.0
   case "D":
-      return 1
+      return 1.0
   default:
-      return 0
+      return 0.0
   }
 }
-
-// Helper function to find the maximum of two integers
-func max(a, b int) int {
-    if a > b {
-        return a
-    }
-    return b
-}
-
-// Helper function to reverse a slice of Matakuliah
-func reverse(s []model.Matakuliah) {
-    for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-        s[i], s[j] = s[j], s[i]
-    }
-}
-
