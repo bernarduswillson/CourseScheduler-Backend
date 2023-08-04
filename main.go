@@ -29,6 +29,7 @@ func main() {
 	r.POST("/add", controllers.AddMatkul)
 	r.GET("/get", controllers.GetMatkul)
 	r.DELETE("/delete/:id", controllers.DeleteMatkul)
+	r.POST("/schedule", controllers.ScheduleCourses)
 
 	r.Run()
 }
