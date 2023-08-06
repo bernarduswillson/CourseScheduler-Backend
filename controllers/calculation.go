@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"singleservice/initializers"
 	model "singleservice/models"
+	"fmt"
 )
 
 func ScheduleCourses(c *gin.Context) {
 	var requestBody struct {
-		Jurusan     string `json:"jurusan"`
-		Semester    int    `json:"semester_ambil"`
-		MinSKS      int    `json:"sks_minimal"`
-		MaxSKS      int    `json:"sks_maksimal"`
+		Jurusan  string `json:"jurusan"`
+		Semester int    `json:"semester_ambil"`
+		MinSKS   int    `json:"sks_minimal"`
+		MaxSKS   int    `json:"sks_maksimal"`
 	}
 
 	err := c.BindJSON(&requestBody)
@@ -26,8 +27,8 @@ func ScheduleCourses(c *gin.Context) {
 	}
 
 	var courses []model.Matakuliah
-	result := initializers.DB.Where("jurusan_mk = ? AND semester_minimal <= ? AND sks >= ? AND sks <= ?",
-		requestBody.Jurusan, requestBody.Semester, requestBody.MinSKS, requestBody.MaxSKS).Find(&courses)
+	result := initializers.DB.Where("jurusan_mk = ? AND semester_minimal <= ?",
+		requestBody.Jurusan, requestBody.Semester).Find(&courses)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -40,10 +41,21 @@ func ScheduleCourses(c *gin.Context) {
 
 	selectedCourses := courseSchedulingAlgorithm(courses, requestBody.Semester, requestBody.MinSKS, requestBody.MaxSKS)
 
+	// Calculate the total selected SKS
+	totalSelectedSKS := 0
+	for _, course := range selectedCourses {
+		totalSelectedSKS += course.SKS
+	}
+
+	// Calculate the total selected score
+	totalSelectedScore := totalScore(selectedCourses)
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":          "success",
-		"message":         "Course schedule computed successfully",
-		"selectedCourses": selectedCourses,
+		"status":             "success",
+		"message":            "Course schedule computed successfully",
+		"selectedCourses":    selectedCourses,
+		"totalSelectedSKS":   totalSelectedSKS,
+		"totalSelectedScore": totalSelectedScore,
 	})
 }
 
@@ -59,31 +71,36 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 
 	// Fill the DP table using bottom-up dynamic programming
 	for i := 1; i <= n; i++ {
-		for j := minSKS; j <= maxSKS; j++ {
-			// Convert SKS to float64 before performing operations
-			sks := float64(courses[i-1].SKS)
-
-			if sks > float64(j) {
-				dp[i][j] = dp[i-1][j]
+		for j := 1; j <= maxSKS; j++ {
+			if courses[i-1].SemesterMinimal <= semester {
+				if courses[i-1].SKS <= j {
+					dp[i][j] = max(dp[i-1][j], dp[i-1][j-courses[i-1].SKS]+mapPrediksiToScore(courses[i-1].Prediksi)*float64(courses[i-1].SKS))
+				} else {
+					dp[i][j] = dp[i-1][j]
+				}
 			} else {
-				// Convert Prediksi to float64 score using the mapping function
-				prediksiScore := mapPrediksiToScore(courses[i-1].Prediksi)
-				dp[i][j] = max(dp[i-1][j], dp[i-1][j-int(sks)]+prediksiScore)
+				dp[i][j] = dp[i-1][j]
 			}
 		}
 	}
 
+	//print the DP table
+	fmt.Println("DP Table:")
+	for i := 0; i <= n; i++ {
+		for j := 0; j <= maxSKS; j++ {
+			fmt.Printf("%.2f ", dp[i][j])
+		}
+		fmt.Println()
+	}
+
 	// Backtrack to find the selected courses based on the DP table
 	selectedCourses := make([]model.Matakuliah, 0)
-	i, j := n, maxSKS
-	for i > 0 && j >= minSKS {
-		// Convert SKS to float64 before performing operations
-		sks := float64(courses[i-1].SKS)
-
-		// If the score at dp[i][j] is different from dp[i-1][j], it means the course is selected
+	i := n
+	j := maxSKS
+	for i > 0 && j > 0 {
 		if dp[i][j] != dp[i-1][j] {
 			selectedCourses = append(selectedCourses, courses[i-1])
-			j -= int(sks)
+			j -= courses[i-1].SKS
 		}
 		i--
 	}
@@ -94,14 +111,24 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 	return selectedCourses
 }
 
+
+
 // Helper function to calculate the total score of a list of courses
 func totalScore(courses []model.Matakuliah) float64 {
+	totalSKS := 0
 	total := 0.0
+
 	for _, course := range courses {
+		totalSKS += course.SKS
 		prediksiScore := mapPrediksiToScore(course.Prediksi)
-		total += prediksiScore
+		total += prediksiScore * float64(course.SKS)
 	}
-	return total
+
+	if totalSKS == 0 {
+		return 0.0
+	}
+
+	return total / float64(totalSKS)
 }
 
 func mapPrediksiToScore(prediksi string) float64 {
