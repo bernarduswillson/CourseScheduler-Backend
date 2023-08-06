@@ -41,13 +41,13 @@ func ScheduleCourses(c *gin.Context) {
 
 	selectedCourses := courseSchedulingAlgorithm(courses, requestBody.Semester, requestBody.MinSKS, requestBody.MaxSKS)
 
-	// Calculate the total selected SKS
+	// total selected SKS
 	totalSelectedSKS := 0
 	for _, course := range selectedCourses {
 		totalSelectedSKS += course.SKS
 	}
 
-	// Calculate the total selected score
+	// total selected score
 	totalSelectedScore := totalScore(selectedCourses)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -62,14 +62,14 @@ func ScheduleCourses(c *gin.Context) {
 func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, maxSKS int) []model.Matakuliah {
 	n := len(courses)
 
-	// Create a 2D slice to store the DP table
+	// create a 2D slice to store the DP table
 	// dp[i][j] represents the maximum score achievable with j SKS in the first i courses
 	dp := make([][]float64, n+1)
 	for i := range dp {
 		dp[i] = make([]float64, maxSKS+1)
 	}
 
-	// Fill the DP table using bottom-up dynamic programming
+	// fill the DP table using bottom-up dynamic programming
 	for i := 1; i <= n; i++ {
 		for j := 1; j <= maxSKS; j++ {
 			if courses[i-1].SemesterMinimal <= semester {
@@ -84,7 +84,7 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 		}
 	}
 
-	//print the DP table
+	// print the DP table
 	fmt.Println("DP Table:")
 	for i := 0; i <= n; i++ {
 		for j := 0; j <= maxSKS; j++ {
@@ -93,7 +93,7 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 		fmt.Println()
 	}
 
-	// Backtrack to find the selected courses based on the DP table
+	// backtrack to find the selected courses based on the DP table
 	selectedCourses := make([]model.Matakuliah, 0)
 	i := n
 	j := maxSKS
@@ -105,15 +105,12 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 		i--
 	}
 
-	// Reverse the selectedCourses since we added them in reverse order during backtracking
+	// reverse the selectedCourses
 	reverse(selectedCourses)
 
 	return selectedCourses
 }
 
-
-
-// Helper function to calculate the total score of a list of courses
 func totalScore(courses []model.Matakuliah) float64 {
 	totalSKS := 0
 	total := 0.0
@@ -150,7 +147,6 @@ func mapPrediksiToScore(prediksi string) float64 {
 	}
 }
 
-// Helper function to find the maximum of two floats
 func max(a, b float64) float64 {
 	if a > b {
 		return a
@@ -158,7 +154,6 @@ func max(a, b float64) float64 {
 	return b
 }
 
-// Helper function to reverse a slice of Matakuliah
 func reverse(s []model.Matakuliah) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]

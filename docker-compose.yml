@@ -3,12 +3,12 @@ version: "3.8"
 services:
   db:
     image: mysql:5.7
-    container_name: singleservice-db
+    container_name: coursescheduler-db
     restart: always
     environment:
       MYSQL_DATABASE: irk
-      MYSQL_USER: root
-      MYSQL_PASSWORD: bewe
+      MYSQL_USER: bewe
+      MYSQL_PASSWORD: root
       MYSQL_ROOT_PASSWORD: bewe
     ports:
       - "3306:3306"
@@ -17,13 +17,13 @@ services:
 
   app:
     build: .
-    container_name: singleservice-app
+    container_name: coursescheduler-app
     ports:
       - "8080:8080"
     environment:
       DB_USERNAME: root
       DB_PASSWORD: bewe
-      DB_HOST: bewe
+      DB_HOST: host.docker.internal
       DB_TABLE: irk
       DB_PORT: 3306
 
@@ -31,9 +31,6 @@ services:
       - db
     networks:
       - fullstack
-
-volumes:
-  database_postgres:
 
 networks:
   fullstack:

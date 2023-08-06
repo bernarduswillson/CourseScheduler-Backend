@@ -1,92 +1,73 @@
-# Seleksi 3 Labpro - Single Service
+# Course Scheduler🎲
+>Tugas Seleksi IRK
+## Table of Contents
+* [Contributors](#contributors)
+* [General Information](#general-information)
+* [Local Setup](#local-setup)
+* [Dynamic Programming](#dynamic-programming)
+* [Algorithm](#algorithm)
+* [Frameworks and Technologies](#frameworks-and-technologies)
+* [References](#references)
+## Contributors
+| NIM | Nama |
+| :---: | :---: |
+| 13521021 | Bernardus Willson  |
+## General Information 
+The Course Scheduler is a program designed to assist students in planning their academic course schedules optimally. This program takes input data on courses along with important information such as the number of credit hours (SKS), the predicted level of difficulty, and the minimum semester required to take the course. Utilizing Dynamic Programming techniques, the program can calculate and determine the best combination of courses that a student can take in one semester, given a specific SKS constraint.
 
-## 13521024 - Ahmad Nadil
+The main objective of this program is to find the combination of courses that yields the highest predicted score per SKS, enabling students to achieve the optimal grade while staying within the maximum SKS limit. The program's output will display the recommended courses along with the total predicted score per SKS obtained from the selected combination.
 
-## How to Run
-### Run using Go
-#### 1. Make sure you have Go Lang installed
-#### 2. Copy the .env.example file and rename it to .env and change the following environment variables to your own
+By using the Course Scheduler, students can efficiently plan their course schedules and maximize their academic achievements.
+
+## Local Setup
+<br>
+1. Clone BE repo using the command below: 
+
 ```
-DB_USERNAME=
-DB_PASSWORD=
-DB_HOST=
-DB_TABLE=
-DB_PORT=
+git clone https://github.com/bernarduswillson/CourseScheduler-Backend.git
 ```
-#### 3. Run the project
+<br>
+2. Make sure you have docker installed, run the backend server using the command below:
+
+```
+docker-compose up -d
+```
+or alternatively, you can run the backend server manually using the command below:
+
 ```
 go run main.go
 ```
-#### Alternatively, you can use compile daemon to automatically compile the project when there is a change
-```
-CompileDaemon -command="./singleservice"
-```
+<br>
+3. The project will be served on port 8080
 
-#### 4. The project will be run on port 8080
 ```
-localhost:8080
+http://localhost:8080/
 ```
 
-### Run using Docker
-#### 1. Make sure you have docker installed
-#### 2. Run the docker-compose
-```
-docker-compose up
-```
-#### 3. The project will be served on port 8080
-```
-localhost:8080
-```
+## Dynamic Programming
 
-### Admin Account
-```
-Username : admin
-Password : admin
-```
+Dynamic programming is a powerful optimization technique used to solve complex problems by breaking them down into smaller overlapping subproblems and then storing their solutions in a table for efficient retrieval. It is particularly useful for problems that exhibit overlapping subproblems and optimal substructure.
 
-## Design Pattern yang Digunakan
-### 1. Singleton Pattern
-Singleton pattern digunakan untuk membuat koneksi ke database. Koneksi ke database hanya perlu dibuat sekali saja dan disimpan dalam variabel static sehingga dapat digunakan oleh class lain tanpa perlu membuat koneksi baru.
+The key idea behind dynamic programming is to avoid redundant calculations by storing the solutions to subproblems in a data structure (usually an array or a table) and reusing them whenever needed. This approach significantly reduces the time complexity of solving the problem.
 
-### 2. Model-View-Controller (MVC) Pattern
-MVC pattern digunakan untuk memisahkan antara logic, view, dan model. Logic diletakkan di dalam folder controller, digunakan untuk operasi CRUD. Untuk view karena aplikasi ini adalah aplikasi backend, hanya berupa routing yang menampilkan data dari controller, hal ini terdapat pada main.go. Sedangkan model digunakan untuk membuat model dari data yang ada di database, hal ini terdapat pada folder model. Ketiga bagian ini dipisahkan agar aplikasi dapat dikembangkan dengan mudah.
+## Algorithm
+1. Initialize the DP table: The algorithm begins by initializing a 2D slice dp to store the maximum score achievable with a specific number of SKS (credit hours) for the first i courses. The dimensions of the DP table are n+1 (number of courses + 1) and maxSKS+1 (maximum number of SKS allowed + 1).
 
-### 3. Repository Pattern
-Repository pattern digunakan untuk memisahkan antara logic dan data. Logic diletakkan di dalam folder controller, digunakan untuk operasi CRUD. Sedangkan data diletakkan di dalam folder database, digunakan untuk membuat model dari data yang ada di database.
+2. Fill the DP table: The algorithm fills the DP table using bottom-up dynamic programming. It iterates through the courses and the SKS to compute the maximum score that can be achieved with a certain number of SKS. For each course, it considers whether to include it in the selection based on the maximum score achieved without the course and the maximum score achieved by including the course and reducing the available SKS accordingly.
 
-## Technology Stack yang Digunakan
-- Go version 1.20.3
-- PostgreSQL version 15.2
-- Docker version 20.10.24
+3. Backtrack to find the selected courses: After filling the DP table, the algorithm backtracks to find the courses that contribute to the maximum score. It starts from the bottom-right corner of the DP table (corresponding to the maximum number of SKS) and traces back to the top-left corner (corresponding to the first course). During the backtracking process, it adds the courses that were included in the optimal selection to the selectedCourses list.
 
-## Endpoint yang dibuat
-- GET /self : Get user data
-- GET /barang : Get all barang
-- GET /barang/{id} : Get barang by id
-- GET /perusahaan : Get all perusahaan
-- GET /perusahaan/{id} : Get perusahaan by id
-- POST /barang : Create barang
-- POST /login : Login user
-- POST /perusahaan : Create perusahaan
-- UPDATE /barang/{id} : Update barang by id
-- UPDATE /perusahaan/{id} : Update perusahaan by id
-- DELETE /barang/{id} : Delete barang by id
-- DELETE /perusahaan/{id} : Delete perusahaan by id
+4. Calculate total score: The algorithm then calls the totalScore function, which calculates the total score of the selected courses. The total score is calculated as the sum of the products of each course's SKS and its corresponding prediksi score.
 
-## Bonus
-### B02 - Deployment
-Aplikasi backend dan database ini sudah di-deploy menggunakan railway
+5. Helper functions: The algorithm also includes helper functions mapPrediksiToScore and max. mapPrediksiToScore maps a prediksi (grade prediction) string to its corresponding score. max is a simple helper function to find the maximum of two floats.
 
-https://single-service-production.up.railway.app/
+## Frameworks and Technologies
+* [Next.js](https://nextjs.org/)
+* [React.js](https://reactjs.org/)
+* [Golang](https://golang.org/)
+* [Gorm](https://gorm.io/)
+* [MySQL](https://www.mysql.com/)
+* [Docker](https://www.docker.com/)
 
-### B04 - Polling
-Penjelasan ada di repostitory [monolith](https://github.com/IceTeaXXD/Seleksi-3-Labpro-Monolith-Ahmad-Nadil#b04---polling)
-
-### B05 - Lighthouse
-Penjelasan ada di repostitory [monolith](https://github.com/IceTeaXXD/Seleksi-3-Labpro-Monolith-Ahmad-Nadil#b05---lighthouse)
-
-### B06 - Responsive Layout
-Penjelasan ada di repostitory [monolith](https://github.com/IceTeaXXD/Seleksi-3-Labpro-Monolith-Ahmad-Nadil#b06---responsive-layout)
-
-### B11 - Search Feature
-Penjelasan ada di repostitory [monolith](https://github.com/IceTeaXXD/Seleksi-3-Labpro-Monolith-Ahmad-Nadil#b11---search-feature)
+## References
+* [0/1 Knapsack Problem Dynamic Programming](https://youtu.be/8LusJS5-AGo)
