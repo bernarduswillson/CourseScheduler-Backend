@@ -66,6 +66,7 @@ The key idea behind dynamic programming is to avoid redundant calculations by st
 * [React.js](https://reactjs.org/)
 * [Golang](https://golang.org/)
 * [Gorm](https://gorm.io/)
+* [Gin](https://gin-gonic.com/)
 * [MySQL](https://www.mysql.com/)
 * [Docker](https://www.docker.com/)
 
