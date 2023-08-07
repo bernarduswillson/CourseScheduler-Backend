@@ -68,17 +68,6 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 
 	n := len(courses)
 
-	// sort the courses based on their prediksi, low to high
-	for i := 0; i < n-1; i++ {
-		for j := 0; j < n-i-1; j++ {
-			prediksiScore1 := mapPrediksiToScore(courses[j].Prediksi)
-			prediksiScore2 := mapPrediksiToScore(courses[j+1].Prediksi)
-			if prediksiScore1 > prediksiScore2 {
-				courses[j], courses[j+1] = courses[j+1], courses[j]
-			}
-		}
-	}
-
 	// create a 2D slice to store the DP table
 	// dp[i][j] represents the maximum score achievable with j SKS in the first i courses
 	dp := make([][]float64, n+1)
