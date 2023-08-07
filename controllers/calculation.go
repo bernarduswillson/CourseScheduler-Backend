@@ -78,12 +78,8 @@ func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, max
 	// fill the DP table using bottom-up dynamic programming
 	for i := 1; i <= n; i++ {
 		for j := 1; j <= maxSKS; j++ {
-			if courses[i-1].SemesterMinimal <= semester {
-				if courses[i-1].SKS <= j {
-					dp[i][j] = max(dp[i-1][j], dp[i-1][j-courses[i-1].SKS]+mapPrediksiToScore(courses[i-1].Prediksi)*float64(courses[i-1].SKS))
-				} else {
-					dp[i][j] = dp[i-1][j]
-				}
+			if courses[i-1].SKS <= j {
+				dp[i][j] = max(dp[i-1][j], dp[i-1][j-courses[i-1].SKS]+mapPrediksiToScore(courses[i-1].Prediksi)*float64(courses[i-1].SKS))
 			} else {
 				dp[i][j] = dp[i-1][j]
 			}
