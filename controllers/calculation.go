@@ -61,8 +61,17 @@ func ScheduleCourses(c *gin.Context) {
 
 func courseSchedulingAlgorithm(courses []model.Matakuliah, semester, minSKS, maxSKS int) []model.Matakuliah {
 	selectedCourses := make([]model.Matakuliah, 0)
-	// if maksSKS < minSKS, no course
-	if maxSKS < minSKS {
+	// if maxSKS < minSKS or no courses available, return empty selectedCourses
+	if maxSKS < minSKS || len(courses) == 0 {
+		return selectedCourses
+	}
+
+	totalSKS := 0
+	for _, course := range courses {
+		totalSKS += course.SKS
+	}
+	// if totalSKS < minSKS, return empty selectedCourses
+	if totalSKS < minSKS {
 		return selectedCourses
 	}
 
